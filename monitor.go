@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/robfig/cron"
 )
 
 type MonitorValues struct {
@@ -40,21 +42,28 @@ func main() {
 	fmt.Println("Starting Renson Endura Delta monitor...")
 	fmt.Println("")
 
-	var configuration = LoadConfiguration("config.json")
-	resp, err := http.Get(configuration.URL)
-	if err != nil {
-		fmt.Printf(err.Error())
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-
-	var monitorValues MonitorValues
-	json.Unmarshal(body, &monitorValues)
-
-	for i := 0; i < len(monitorValues.MonitorValues); i++ {
-		if monitorValues.MonitorValues[i].Name == "Filter remaining time" {
-			fmt.Println("Remaining time for filter: " + monitorValues.MonitorValues[i].Value + " days")
+	c := cron.New()
+	c.AddFunc("@daily", func() {
+		var configuration = LoadConfiguration("config.json")
+		resp, err := http.Get(configuration.URL)
+		if err != nil {
+			fmt.Printf(err.Error())
 		}
+
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+
+		var monitorValues MonitorValues
+		json.Unmarshal(body, &monitorValues)
+
+		for i := 0; i < len(monitorValues.MonitorValues); i++ {
+			if monitorValues.MonitorValues[i].Name == "Filter remaining time" {
+				fmt.Println("Remaining time for filter: " + monitorValues.MonitorValues[i].Value + " days")
+			}
+		}
+	})
+	c.Start()
+
+	for {
 	}
 }
