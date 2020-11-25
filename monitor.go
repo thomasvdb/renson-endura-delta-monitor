@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/robfig/cron"
+	"gopkg.in/mailgun/mailgun-go.v1"
 )
 
 type MonitorValues struct {
@@ -21,7 +22,15 @@ type MonitorValue struct {
 }
 
 type Config struct {
-	URL string `json:"url"`
+	URL          string             `json:"url"`
+	MailSettings MailSettingsConfig `json:"mailSettings"`
+}
+
+type MailSettingsConfig struct {
+	Domain   string `json:"domain"`
+	APIKey   string `json:"apiKey"`
+	FromName string `json:"fromName"`
+	MailTo   string `json:"mailTo"`
 }
 
 func LoadConfiguration(file string) Config {
@@ -58,7 +67,10 @@ func main() {
 
 		for i := 0; i < len(monitorValues.MonitorValues); i++ {
 			if monitorValues.MonitorValues[i].Name == "Filter remaining time" {
-				fmt.Println("Remaining time for filter: " + monitorValues.MonitorValues[i].Value + " days")
+				fmt.Println(monitorValues.MonitorValues[i].Value)
+
+				sendStatusUpdate(configuration.MailSettings)
+				resp.Body.Close()
 			}
 		}
 	})
@@ -66,4 +78,16 @@ func main() {
 
 	for {
 	}
+}
+
+func sendStatusUpdate(mailSettings MailSettingsConfig) (string, error) {
+	mg := mailgun.NewMailgun(mailSettings.Domain, mailSettings.APIKey, "")
+	m := mg.NewMessage(
+		mailSettings.FromName+"<"+mailSettings.Domain+">",
+		"90 days are passed since the last cleaning of the filters!",
+		"Renson Endura Delta filter cleaning notice",
+		mailSettings.MailTo)
+
+	_, id, err := mg.Send(m)
+	return id, err
 }

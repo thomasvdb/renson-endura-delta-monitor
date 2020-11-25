@@ -1,3 +1,9 @@
 {
-    "url": "http://[IP ADDRESS]/JSON/ModifiedItems?wsn=150324488709"
+    "url": "http://[IP ADDRESS]/JSON/ModifiedItems?wsn=150324488709",
+    "mailSettings": {
+        "domain": "",
+        "apiKey": "",
+        "fromName": "Renson Endura Delta monitor",
+        "mailTo": ""
+    }
 }
