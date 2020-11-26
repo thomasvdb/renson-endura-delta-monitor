@@ -69,7 +69,10 @@ func main() {
 			if monitorValues.MonitorValues[i].Name == "Filter remaining time" {
 				fmt.Println(monitorValues.MonitorValues[i].Value)
 
-				sendStatusUpdate(configuration.MailSettings)
+				if monitorValues.MonitorValues[i].Value == "0" {
+					sendStatusUpdate(configuration.MailSettings)
+				}
+
 				resp.Body.Close()
 			}
 		}
@@ -83,7 +86,7 @@ func main() {
 func sendStatusUpdate(mailSettings MailSettingsConfig) (string, error) {
 	mg := mailgun.NewMailgun(mailSettings.Domain, mailSettings.APIKey, "")
 	m := mg.NewMessage(
-		mailSettings.FromName+"<"+mailSettings.Domain+">",
+		mailSettings.FromName+" <mailgun@"+mailSettings.Domain+">",
 		"90 days are passed since the last cleaning of the filters!",
 		"Renson Endura Delta filter cleaning notice",
 		mailSettings.MailTo)
